@@ -7,8 +7,37 @@
 </head>
 <body>
   <h1>Welcome to Peter's Aviation Database</h1>
-  <p id="test-message">Loading...</p>
+  <p id="last-session">Loading...</p>
 
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-number" id="stat-registrations">-</span>
+      <span class="stat-label">Registrations</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number" id="stat-airlines">-</span>
+      <span class="stat-label">Airlines</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number" id="stat-sessions">-</span>
+      <span class="stat-label">Sessions</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number" id="stat-airports">-</span>
+      <span class="stat-label">Airports</span>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-container">
+      <canvas id="top-airlines-chart"></canvas>
+    </div>
+    <div class="chart-container">
+      <canvas id="top-countries-chart"></canvas>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

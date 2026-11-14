@@ -1,11 +1,8 @@
 const express = require('express');
 const db = require('./db');
 const app = express();
+app.use(express.static('public'));
 const PORT = 1114;
-
-app.get('/', (req, res) => {
-  res.send('Welcome to Peters Aviation Database!');
-});
 
 app.get('/api/registrations', (req, res) => {
   const registrations = db.prepare(`
@@ -112,6 +109,31 @@ app.get('/api/sessions', (req, res) => {
   });
 
   res.json(sessionsWithDetails);
+});
+
+app.get('/api/top-airlines', (req, res) => {
+  const topAirlines = db.prepare(`
+    SELECT airlines.name, COUNT(*) AS count
+    FROM registrations
+    JOIN airlines ON registrations.airline_id = airlines.id
+    GROUP BY airlines.id
+    ORDER BY count DESC
+    LIMIT 5
+  `).all();
+  res.json(topAirlines);
+});
+
+app.get('/api/top-countries', (req, res) => {
+  const topCountries = db.prepare(`
+    SELECT countries.name, COUNT(*) AS count
+    FROM registrations
+    JOIN airlines ON registrations.airline_id = airlines.id
+    JOIN countries ON airlines.country_id = countries.id
+    GROUP BY countries.id
+    ORDER BY count DESC
+    LIMIT 5
+  `).all();
+  res.json(topCountries);
 });
 
 app.listen(PORT, () => {
