@@ -1,3 +1,8 @@
+const chartColors = ['#B5651D', '#7B3F00', '#C9A66B', '#9C6B30', '#5E3A1C'];
+
+Chart.defaults.font.family = 'Inter';
+Chart.defaults.color = '#2E1F12';
+
 function drawBarChart(canvasId, apiUrl, title, labelKey) {
   fetch(apiUrl)
     .then(response => response.json())
@@ -8,14 +13,23 @@ function drawBarChart(canvasId, apiUrl, title, labelKey) {
           labels: data.map(row => row[labelKey]),
           datasets: [{
             label: 'Registrations Caught',
-            data: data.map(row => row.count)
+            data: data.map(row => row.count),
+            backgroundColor: '#B5651D',
+            borderRadius: 2
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           indexAxis: 'y',
-          plugins: { title: { display: true, text: title } }
+          plugins: {
+            title: { display: true, text: title, font: { family: 'Roboto Slab', size: 15 } },
+            legend: { display: false }
+          },
+          scales: {
+            x: { grid: { color: '#E0D2AE' } },
+            y: { grid: { color: '#E0D2AE' } }
+          }
         }
       });
     });

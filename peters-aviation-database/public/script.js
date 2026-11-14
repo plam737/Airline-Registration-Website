@@ -9,6 +9,11 @@ fetch('/api/stats')
     document.getElementById('stat-airports').textContent = data.total_airports;
   });
 
+const chartColors = ['#B5651D', '#7B3F00', '#C9A66B', '#9C6B30', '#5E3A1C'];
+
+Chart.defaults.font.family = 'Inter';
+Chart.defaults.color = '#2E1F12';
+
 fetch('/api/top-airlines')
   .then(response => response.json())
   .then(data => {
@@ -18,13 +23,22 @@ fetch('/api/top-airlines')
         labels: data.map(row => row.name),
         datasets: [{
           label: 'Registrations Caught',
-          data: data.map(row => row.count)
+          data: data.map(row => row.count),
+          backgroundColor: chartColors,
+          borderRadius: 2
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { title: { display: true, text: 'Top 5 Airlines' } }
+        plugins: {
+          title: { display: true, text: 'Top 5 Airlines', font: { family: 'Roboto Slab', size: 15 } },
+          legend: { display: false }
+        },
+        scales: {
+          x: { grid: { color: '#E0D2AE' } },
+          y: { grid: { color: '#E0D2AE' } }
+        }
       }
     });
   });
@@ -38,13 +52,22 @@ fetch('/api/top-countries')
         labels: data.map(row => row.name),
         datasets: [{
           label: 'Registrations Caught',
-          data: data.map(row => row.count)
+          data: data.map(row => row.count),
+          backgroundColor: chartColors,
+          borderRadius: 2
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { title: { display: true, text: 'Top 5 Countries' } }
+        plugins: {
+          title: { display: true, text: 'Top 5 Countries', font: { family: 'Roboto Slab', size: 15 } },
+          legend: { display: false }
+        },
+        scales: {
+          x: { grid: { color: '#E0D2AE' } },
+          y: { grid: { color: '#E0D2AE' } }
+        }
       }
     });
   });
