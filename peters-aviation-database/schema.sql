@@ -1,16 +1,16 @@
-CREATE TABLE countries
+CREATE TABLE IF NOT EXISTS countries
 (
     id INTEGER PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE
 );
 
-CREATE TABLE alliances
+CREATE TABLE IF NOT EXISTS alliances
 (
     id INTEGER PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE
 );
 
-CREATE TABLE airlines
+CREATE TABLE IF NOT EXISTS airlines
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(150) NOT NULL UNIQUE,
@@ -21,7 +21,7 @@ CREATE TABLE airlines
     FOREIGN KEY (alliance_id) REFERENCES alliances(id)
 );
 
-CREATE TABLE aircraft_types
+CREATE TABLE IF NOT EXISTS aircraft_types
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(100) UNIQUE,
@@ -30,7 +30,7 @@ CREATE TABLE aircraft_types
     type TEXT CHECK (type IN ('Narrow-body', 'Wide-body', 'Regional', 'Cargo'))
 );
 
-CREATE TABLE airports
+CREATE TABLE IF NOT EXISTS airports
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(150) NOT NULL UNIQUE,
@@ -42,7 +42,7 @@ CREATE TABLE airports
     FOREIGN KEY (country_id) REFERENCES countries(id)
 );
 
-CREATE TABLE locations
+CREATE TABLE IF NOT EXISTS locations
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(150) NOT NULL UNIQUE,
@@ -51,7 +51,7 @@ CREATE TABLE locations
     UNIQUE (name, airport_id)
 );
 
-CREATE TABLE sessions
+CREATE TABLE IF NOT EXISTS sessions
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date TEXT NOT NULL,
@@ -60,10 +60,11 @@ CREATE TABLE sessions
     start_time TEXT,
     end_time TEXT,
     total_time TEXT,
+    is_quick_sighting INTEGER NOT NULL DEFAULT 0 CHECK (is_quick_sighting IN (0, 1)),
     FOREIGN KEY (airport_id) REFERENCES airports(id)
 );
 
-CREATE TABLE session_locations
+CREATE TABLE IF NOT EXISTS session_locations
 (
     session_id INTEGER NOT NULL,
     location_id INTEGER NOT NULL,
@@ -72,7 +73,7 @@ CREATE TABLE session_locations
     FOREIGN KEY (location_id) REFERENCES locations(id)
 );
 
-CREATE TABLE registrations
+CREATE TABLE IF NOT EXISTS registrations
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT, 
     reg TEXT NOT NULL,
@@ -85,7 +86,7 @@ CREATE TABLE registrations
     UNIQUE (reg, airline_id)
 );
 
-CREATE TABLE sightings
+CREATE TABLE IF NOT EXISTS sightings
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     registration_id INTEGER NOT NULL,
