@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Registration - Peter's Aviation Database</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+
+  <h1>Add Registration</h1>
+
+  <!-- LOGIN GATE -->
+  <div id="login-section">
+    <label>
+      Password:
+      <input type="password" id="password-input">
+    </label>
+    <button id="login-button">Log In</button>
+    <p id="login-error" class="error-text hidden">Incorrect password.</p>
+  </div>
+
+  <!-- MAIN ADD FORM (hidden until logged in) -->
+  <div id="add-form-section" class="hidden">
+
+    <!-- Step 1: enter registration, check for duplicate -->
+    <div class="form-block">
+      <label>
+        Registration:
+        <input type="text" id="reg-input" placeholder="e.g. VH-ZNE">
+      </label>
+      <button id="check-reg-button">Check</button>
+      <p id="duplicate-status"></p>
+    </div>
+
+    <!-- Step 2: fields that appear depending on duplicate-check result -->
+    <div id="new-registration-fields" class="form-block hidden">
+      <h3>New Registration Details</h3>
+
+      <div id="airline-field" class="autocomplete-field">
+        <label>Airline:</label>
+        <input type="text" id="airline-search" placeholder="Search airlines...">
+        <div id="airline-results" class="autocomplete-results"></div>
+        <div id="airline-create" class="create-subform hidden">
+          <h4>New Airline</h4>
+          <label>Name: <input type="text" id="new-airline-name"></label>
+
+          <div id="country-field" class="autocomplete-field">
+            <label>Country:</label>
+            <input type="text" id="country-search" placeholder="Search countries...">
+            <div id="country-results" class="autocomplete-results"></div>
+            <div id="country-create" class="create-subform hidden">
+              <h4>New Country</h4>
+              <label>Name: <input type="text" id="new-country-name"></label>
+            </div>
+          </div>
+
+          <div id="alliance-field" class="autocomplete-field">
+            <label>Alliance:</label>
+            <input type="text" id="alliance-search" placeholder="Search alliances...">
+            <div id="alliance-results" class="autocomplete-results"></div>
+            <div id="alliance-create" class="create-subform hidden">
+              <h4>New Alliance</h4>
+              <label>Name: <input type="text" id="new-alliance-name"></label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="aircraft-field" class="autocomplete-field">
+        <label>Aircraft Type:</label>
+        <input type="text" id="aircraft-search" placeholder="Search aircraft types...">
+        <div id="aircraft-results" class="autocomplete-results"></div>
+        <div id="aircraft-create" class="create-subform hidden">
+          <h4>New Aircraft Type</h4>
+          <label>Code: <input type="text" id="new-aircraft-code"></label>
+          <label>Name: <input type="text" id="new-aircraft-name"></label>
+          <label>Manufacturer: <input type="text" id="new-aircraft-manufacturer"></label>
+          <label>
+            Body Type:
+            <select id="new-aircraft-bodytype">
+              <option value="Narrow-body">Narrow-body</option>
+              <option value="Wide-body">Wide-body</option>
+              <option value="Regional">Regional</option>
+              <option value="Cargo">Cargo</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: session (shown for ALL cases - new, same-airline dupe, different-airline dupe) -->
+    <div id="session-fields" class="form-block hidden">
+      <h3>Session</h3>
+
+      <div id="session-field" class="autocomplete-field">
+        <label>Session:</label>
+        <input type="text" id="session-search" placeholder="Search sessions (by date/airport)...">
+        <div id="session-results" class="autocomplete-results"></div>
+        <div id="session-create" class="create-subform hidden">
+          <h4>New Session</h4>
+          <label>Date: <input type="date" id="new-session-date"></label>
+
+          <div id="session-airport-field" class="autocomplete-field">
+            <label>Airport:</label>
+            <input type="text" id="session-airport-search" placeholder="Search airports...">
+            <div id="session-airport-results" class="autocomplete-results"></div>
+            <div id="session-airport-create" class="create-subform hidden">
+              <h4>New Airport</h4>
+              <label>Code: <input type="text" id="new-airport-code"></label>
+              <label>City: <input type="text" id="new-airport-city"></label>
+              <label>State/Province: <input type="text" id="new-airport-state"></label>
+
+              <div id="airport-country-field" class="autocomplete-field">
+                <label>Country:</label>
+                <input type="text" id="airport-country-search" placeholder="Search countries...">
+                <div id="airport-country-results" class="autocomplete-results"></div>
+                <div id="airport-country-create" class="create-subform hidden">
+                  <h4>New Country</h4>
+                  <label>Name: <input type="text" id="new-airport-country-name"></label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <label>Start Time: <input type="time" id="new-session-start"></label>
+          <label>End Time: <input type="time" id="new-session-end"></label>
+
+          <div id="session-locations-field" class="autocomplete-field">
+            <label>Locations (scoped to selected airport):</label>
+            <input type="text" id="location-search" placeholder="Search locations...">
+            <div id="location-results" class="autocomplete-results"></div>
+            <div id="location-create" class="create-subform hidden">
+              <h4>New Location</h4>
+              <label>Name: <input type="text" id="new-location-name"></label>
+            </div>
+            <ul id="selected-locations-list"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: notes + submit -->
+    <div id="submit-fields" class="form-block hidden">
+      <label>Notes: <input type="text" id="new-notes"></label>
+      <button id="submit-registration-button">Add Registration</button>
+      <p id="submit-status"></p>
+    </div>
+
+  </div>
+
+  <script src="nav.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

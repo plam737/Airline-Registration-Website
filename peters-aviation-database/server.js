@@ -2,7 +2,18 @@ const express = require('express');
 const db = require('./db');
 const app = express();
 app.use(express.static('public'));
+app.use(express.json());
 const PORT = 1114;
+const ADMIN_PASSWORD = 'changeme123';
+
+app.post('/api/login', (req, res) => {
+  const { password } = req.body;
+  if (password === ADMIN_PASSWORD) {
+    res.json({ success: true });
+  } else {
+    res.json({ success: false });
+  }
+});
 
 app.get('/api/registrations', (req, res) => {
   const registrations = db.prepare(`
@@ -134,6 +145,57 @@ app.get('/api/top-countries', (req, res) => {
     LIMIT 5
   `).all();
   res.json(topCountries);
+});
+
+app.get('/api/all-airlines', (req, res) => {
+  const airlines = db.prepare(`
+    SELECT airlines.name, COUNT(*) AS count
+    FROM registrations
+    JOIN airlines ON registrations.airline_id = airlines.id
+    GROUP BY airlines.id
+    ORDER BY count DESC
+  `).all();
+  res.json(airlines);
+});
+
+app.get('/api/all-countries', (req, res) => {
+  const countries = db.prepare(`
+    SELECT countries.name, COUNT(*) AS count
+    FROM registrations
+    JOIN airlines ON registrations.airline_id = airlines.id
+    JOIN countries ON airlines.country_id = countries.id
+    GROUP BY countries.id
+    ORDER BY count DESC
+  `).all();
+  res.json(countries);
+});
+
+app.get('/api/all-aircraft', (req, res) => {
+  const aircraft = db.prepare(`
+    SELECT aircraft_types.code, COUNT(*) AS count
+    FROM registrations
+    JOIN aircraft_types ON registrations.aircraft_type_id = aircraft_types.id
+    GROUP BY aircraft_types.id
+    ORDER BY count DESC
+  `).all();
+  res.json(aircraft);
+});
+
+app.get('/api/check-registration/:reg', (req, res) => {
+  const reg = req.params.reg.toUpperCase();
+
+  const matches = db.prepare(`
+    SELECT registrations.id, registrations.airline_id, airlines.name AS airline_name
+    FROM registrations
+    JOIN airlines ON registrations.airline_id = airlines.id
+    WHERE registrations.reg = ?
+  `).all(reg);
+
+  if (matches.length === 0) {
+    res.json({ status: 'new' });
+  } else {
+    res.json({ status: 'found', matches: matches });
+  }
 });
 
 app.listen(PORT, () => {
