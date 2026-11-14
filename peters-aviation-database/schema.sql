@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS airports
     city VARCHAR(100) NOT NULL,
     state_province VARCHAR(100),
     country_id INTEGER NOT NULL,
-    iata_code CHAR(3) NOT NULL UNIQUE,
+    iata_code CHAR(3) UNIQUE,
     icao_code CHAR(4) UNIQUE,
     FOREIGN KEY (country_id) REFERENCES countries(id)
 );
