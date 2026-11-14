@@ -12,9 +12,9 @@ function drawBarChart(canvasId, apiUrl, title, labelKey) {
         data: {
           labels: data.map(row => row[labelKey]),
           datasets: [{
-            label: 'Registrations Caught',
+            label: 'Sightings',
             data: data.map(row => row.count),
-            backgroundColor: '#B5651D',
+            backgroundColor: '#3E8EDE',
             borderRadius: 2
           }]
         },
@@ -27,8 +27,8 @@ function drawBarChart(canvasId, apiUrl, title, labelKey) {
             legend: { display: false }
           },
           scales: {
-            x: { grid: { color: '#E0D2AE' } },
-            y: { grid: { color: '#E0D2AE' } }
+            x: { grid: { color: '#D7E7F2' } },
+            y: { grid: { color: '#D7E7F2' } }
           }
         }
       });

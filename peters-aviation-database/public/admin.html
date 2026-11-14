@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Add Registration - Peter's Aviation Database</title>
+  <title>Admin - Peter's Aviation Database</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet">
@@ -10,7 +10,7 @@
 <body>
   <div id="navbar-placeholder"></div>
 
-  <h1>Add Registration</h1>
+  <h1>Admin</h1>
 
   <!-- LOGIN GATE -->
   <div id="login-section">
@@ -24,6 +24,8 @@
 
   <!-- MAIN ADD FORM (hidden until logged in) -->
   <div id="add-form-section" class="hidden">
+
+    <h3>Add a registration</h3>
 
     <!-- Step 1: enter registration, check for duplicate -->
     <div class="form-block">
@@ -102,6 +104,7 @@
         <div id="session-create" class="create-subform hidden">
           <h4>New Session</h4>
           <label>Date: <input type="date" id="new-session-date"></label>
+          <label><input type="checkbox" id="new-session-quick"> Individual sighting</label>
 
           <div id="session-airport-field" class="autocomplete-field">
             <label>Airport:</label>
@@ -110,6 +113,7 @@
             <div id="session-airport-create" class="create-subform hidden">
               <h4>New Airport</h4>
               <label>Code: <input type="text" id="new-airport-code"></label>
+              <label>Name: <input type="text" id="new-airport-name"></label>
               <label>City: <input type="text" id="new-airport-city"></label>
               <label>State/Province: <input type="text" id="new-airport-state"></label>
 
@@ -150,6 +154,65 @@
     </div>
 
   </div>
+
+  <!-- EDIT SECTION (hidden until logged in) -->
+  <div id="edit-section" class="hidden">
+    <h3>Edit existing records</h3>
+    <p id="edit-status"></p>
+
+    <h3>Airlines</h3>
+    <p class="hint">Changing an airline's country fixes it for every registration under that airline. A country or alliance that doesn't exist yet is created.</p>
+    <input type="text" id="airline-filter" class="edit-filter" placeholder="Filter airlines...">
+    <table>
+      <thead>
+        <tr><th>Airline</th><th>Country</th><th>Alliance</th><th></th></tr>
+      </thead>
+      <tbody id="airlines-body"></tbody>
+      <p id="airline-limit-note" class="hint"></p>
+    </table>
+
+    <h3>Registrations</h3>
+    <p class="hint">Airline and aircraft type must match an existing one (pick from the suggestions).</p>
+    <input type="text" id="reg-filter" class="edit-filter" placeholder="Filter by registration, airline or aircraft...">
+    <table>
+      <thead>
+        <tr><th>Registration</th><th>Airline</th><th>Aircraft</th><th>Notes</th><th></th></tr>
+      </thead>
+      <tbody id="registrations-body"></tbody>
+    </table>
+    <p id="reg-limit-note" class="hint"></p>
+
+    <h3>Sightings</h3>
+    <p class="hint">Pick a registration below to see and manage which sessions it was sighted in.</p>
+    <label>
+      Registration:
+      <select id="sighting-reg-select">
+        <option value="">Select a registration...</option>
+      </select>
+    </label>
+
+    <div id="sighting-manager" class="hidden">
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Airport</th><th></th></tr>
+        </thead>
+        <tbody id="sightings-body"></tbody>
+      </table>
+
+      <label>
+        Add sighting (existing session):
+        <select id="add-sighting-session-select">
+          <option value="">Select a session...</option>
+        </select>
+      </label>
+      <button id="add-sighting-button">Add</button>
+    </div>
+  </div>
+
+  <datalist id="country-list"></datalist>
+  <datalist id="alliance-list"></datalist>
+  <datalist id="airline-list"></datalist>
+  <datalist id="aircraft-list"></datalist>
 
   <script src="nav.js"></script>
   <script src="admin.js"></script>

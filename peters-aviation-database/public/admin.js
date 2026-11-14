@@ -11,6 +11,9 @@ document.getElementById('login-button').addEventListener('click', () => {
       if (result.success) {
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('add-form-section').classList.remove('hidden');
+        document.getElementById('edit-section').classList.remove('hidden');
+        sessionStorage.setItem('adminPassword', password);
+        loadAll();
       } else {
         document.getElementById('login-error').classList.remove('hidden');
       }
@@ -398,12 +401,14 @@ document.getElementById('submit-registration-button').addEventListener('click', 
       ? { id: selectedSessionId }
       : {
           date: document.getElementById('new-session-date').value,
+          is_quick_sighting: document.getElementById('new-session-quick').checked,
           start_time: document.getElementById('new-session-start').value || null,
           end_time: document.getElementById('new-session-end').value || null,
           airport: selectedSessionAirportId
             ? { id: selectedSessionAirportId }
             : {
                 code: document.getElementById('new-airport-code').value.trim(),
+                name: document.getElementById('new-airport-name').value.trim() || null,
                 city: document.getElementById('new-airport-city').value.trim(),
                 state_province: document.getElementById('new-airport-state').value.trim() || null,
                 country: selectedAirportCountryId
@@ -417,7 +422,7 @@ document.getElementById('submit-registration-button').addEventListener('click', 
 
   fetch('/api/add-registration', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify(payload)
   })
     .then(response => response.json())
@@ -431,5 +436,304 @@ document.getElementById('submit-registration-button').addEventListener('click', 
         statusEl.style.color = 'red';
       }
       submitButton.disabled = false;
+    });
+});
+
+// =====================================================================
+// EDIT EXISTING RECORDS (airlines + registrations)
+// =====================================================================
+
+let editAirlines = [];
+let editRegistrations = [];
+let editingAirlineId = null;
+let editingRegId = null;
+
+const editStatusEl = document.getElementById('edit-status');
+const AIRLINE_ROW_LIMIT = 5;
+const REG_ROW_LIMIT = 10;
+
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+
+function authHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'x-admin-password': sessionStorage.getItem('adminPassword') || ''
+  };
+}
+
+function showEditStatus(message, ok) {
+  editStatusEl.textContent = message;
+  editStatusEl.style.color = ok ? 'green' : '#C0392B';
+}
+
+function fillDatalist(id, values) {
+  document.getElementById(id).innerHTML =
+    values.map(v => `<option value="${esc(v)}"></option>`).join('');
+}
+
+function loadAll() {
+  return Promise.all([
+    fetch('/api/edit-options').then(r => r.json()),
+    fetch('/api/registrations').then(r => r.json())
+  ]).then(([options, regs]) => {
+    editAirlines = options.airlines;
+    editRegistrations = regs;
+    fillDatalist('country-list', options.countries);
+    fillDatalist('alliance-list', options.alliances);
+    fillDatalist('airline-list', options.airlines.map(a => a.name));
+    fillDatalist('aircraft-list', options.aircraft.map(a => a.code));
+    renderAirlines();
+    renderRegistrations();
+    populateSightingRegSelect();
+    populateSessionSelect();
+  });
+}
+
+// ---------- Airlines ----------
+
+function renderAirlines() {
+  const filter = document.getElementById('airline-filter').value.trim().toLowerCase();
+  const tbody = document.getElementById('airlines-body');
+
+  const matches = editAirlines.filter(a =>
+    !filter ||
+    a.name.toLowerCase().includes(filter) ||
+    a.country_name.toLowerCase().includes(filter)
+  );
+  const rows = matches.slice(0, AIRLINE_ROW_LIMIT);
+
+  document.getElementById('airline-limit-note').textContent = matches.length > AIRLINE_ROW_LIMIT
+    ? `Showing ${AIRLINE_ROW_LIMIT} of ${matches.length}. Use the filter to find the rest.`
+    : '';
+
+  tbody.innerHTML = rows.map(a => {
+    if (a.id === editingAirlineId) {
+      return `
+        <tr data-id="${a.id}">
+          <td><input class="f-name" value="${esc(a.name)}"></td>
+          <td><input class="f-country" list="country-list" value="${esc(a.country_name)}"></td>
+          <td><input class="f-alliance" list="alliance-list" value="${esc(a.alliance_name || '')}" placeholder="None"></td>
+          <td class="row-actions">
+            <button data-action="save-airline">Save changes</button>
+            <button data-action="cancel-airline" class="secondary">Cancel</button>
+          </td>
+        </tr>`;
+    }
+    return `
+      <tr data-id="${a.id}">
+        <td>${esc(a.name)}</td>
+        <td>${esc(a.country_name)}</td>
+        <td>${esc(a.alliance_name || '')}</td>
+        <td class="row-actions"><button data-action="edit-airline">Edit</button></td>
+      </tr>`;
+  }).join('');
+}
+
+document.getElementById('airline-filter').addEventListener('input', renderAirlines);
+
+document.getElementById('airlines-body').addEventListener('click', e => {
+  const button = e.target.closest('button[data-action]');
+  if (!button) return;
+  const row = button.closest('tr');
+  const id = Number(row.dataset.id);
+
+  if (button.dataset.action === 'edit-airline') {
+    editingAirlineId = id;
+    renderAirlines();
+  } else if (button.dataset.action === 'cancel-airline') {
+    editingAirlineId = null;
+    renderAirlines();
+  } else if (button.dataset.action === 'save-airline') {
+    sendEditRequest(`/api/airlines/${id}`, 'PUT', {
+      name: row.querySelector('.f-name').value,
+      country_name: row.querySelector('.f-country').value,
+      alliance_name: row.querySelector('.f-alliance').value
+    }, () => { editingAirlineId = null; });
+  }
+});
+
+// ---------- Registrations ----------
+
+function renderRegistrations() {
+  const filter = document.getElementById('reg-filter').value.trim().toLowerCase();
+  const tbody = document.getElementById('registrations-body');
+
+  const matches = editRegistrations.filter(r =>
+    !filter ||
+    r.reg.toLowerCase().includes(filter) ||
+    r.airline_name.toLowerCase().includes(filter) ||
+    r.aircraft_code.toLowerCase().includes(filter)
+  );
+  const rows = matches.slice(0, REG_ROW_LIMIT);
+
+  document.getElementById('reg-limit-note').textContent = matches.length > REG_ROW_LIMIT
+    ? `Showing ${REG_ROW_LIMIT} of ${matches.length}. Use the filter to narrow it down.`
+    : '';
+
+  tbody.innerHTML = rows.map(r => {
+    if (r.id === editingRegId) {
+      return `
+        <tr data-id="${r.id}">
+          <td><input class="f-reg" value="${esc(r.reg)}"></td>
+          <td><input class="f-airline" list="airline-list" value="${esc(r.airline_name)}"></td>
+          <td><input class="f-aircraft" list="aircraft-list" value="${esc(r.aircraft_code)}"></td>
+          <td><input class="f-notes" value="${esc(r.notes || '')}"></td>
+          <td class="row-actions">
+            <button data-action="save-reg">Save changes</button>
+            <button data-action="cancel-reg" class="secondary">Cancel</button>
+            <button data-action="delete-reg" class="danger">Delete</button>
+          </td>
+        </tr>`;
+    }
+    return `
+      <tr data-id="${r.id}">
+        <td>${esc(r.reg)}</td>
+        <td>${esc(r.airline_name)}</td>
+        <td>${esc(r.aircraft_code)}</td>
+        <td>${esc(r.notes || '')}</td>
+        <td class="row-actions"><button data-action="edit-reg">Edit</button></td>
+      </tr>`;
+  }).join('');
+}
+
+document.getElementById('reg-filter').addEventListener('input', renderRegistrations);
+
+document.getElementById('registrations-body').addEventListener('click', e => {
+  const button = e.target.closest('button[data-action]');
+  if (!button) return;
+  const row = button.closest('tr');
+  const id = Number(row.dataset.id);
+
+  if (button.dataset.action === 'edit-reg') {
+    editingRegId = id;
+    renderRegistrations();
+  } else if (button.dataset.action === 'cancel-reg') {
+    editingRegId = null;
+    renderRegistrations();
+  } else if (button.dataset.action === 'save-reg') {
+    sendEditRequest(`/api/registrations/${id}`, 'PUT', {
+      reg: row.querySelector('.f-reg').value,
+      airline_name: row.querySelector('.f-airline').value,
+      aircraft_code: row.querySelector('.f-aircraft').value,
+      notes: row.querySelector('.f-notes').value
+    }, () => { editingRegId = null; });
+  } else if (button.dataset.action === 'delete-reg') {
+    const reg = editRegistrations.find(r => r.id === id);
+    const ok = confirm(`Delete ${reg.reg} (${reg.airline_name}) and all ${reg.times_spotted} of its sightings? This can't be undone.`);
+    if (!ok) return;
+    sendEditRequest(`/api/registrations/${id}`, 'DELETE', null, () => { editingRegId = null; });
+  }
+});
+
+// ---------- Shared request helper ----------
+
+function sendEditRequest(url, method, body, onDone) {
+  fetch(url, {
+    method,
+    headers: authHeaders(),
+    body: body ? JSON.stringify(body) : undefined
+  })
+    .then(response => response.json())
+    .then(result => {
+      if (result.success) {
+        showEditStatus(method === 'DELETE' ? 'Deleted.' : 'Changes saved.', true);
+        onDone();
+        return loadAll();
+      }
+      showEditStatus(`Not saved: ${result.error}`, false);
+    })
+    .catch(() => showEditStatus('Not saved: could not reach the server.', false));
+}
+
+// ---------- Sightings ----------
+
+let allSessionsForSightings = [];
+
+function populateSightingRegSelect() {
+  const select = document.getElementById('sighting-reg-select');
+  select.innerHTML = '<option value="">Select a registration...</option>' +
+    editRegistrations.map(r => `<option value="${r.id}">${esc(r.reg)} (${esc(r.airline_name)})</option>`).join('');
+}
+
+function populateSessionSelect() {
+  fetch('/api/all-sessions')
+    .then(r => r.json())
+    .then(sessions => {
+      allSessionsForSightings = sessions;
+      const select = document.getElementById('add-sighting-session-select');
+      select.innerHTML = '<option value="">Select a session...</option>' +
+        sessions.map(s => `<option value="${s.id}">${esc(s.date)} — ${esc(s.city)} (${esc(s.iata_code)})</option>`).join('');
+    });
+}
+
+document.getElementById('sighting-reg-select').addEventListener('change', (e) => {
+  const regId = e.target.value;
+  const manager = document.getElementById('sighting-manager');
+
+  if (!regId) {
+    manager.classList.add('hidden');
+    return;
+  }
+
+  manager.classList.remove('hidden');
+  loadSightingsFor(regId);
+});
+
+function loadSightingsFor(regId) {
+  fetch(`/api/registrations/${regId}/sightings`)
+    .then(r => r.json())
+    .then(sightings => {
+      const tbody = document.getElementById('sightings-body');
+      tbody.innerHTML = sightings.map(s => `
+        <tr data-sighting-id="${s.sighting_id}">
+          <td>${esc(s.date)}</td>
+          <td>${esc(s.city)} (${esc(s.iata_code)})</td>
+          <td class="row-actions"><button data-action="delete-sighting" class="danger">Remove</button></td>
+        </tr>
+      `).join('');
+    });
+}
+
+document.getElementById('sightings-body').addEventListener('click', (e) => {
+  const button = e.target.closest('button[data-action="delete-sighting"]');
+  if (!button) return;
+  const sightingId = button.closest('tr').dataset.sightingId;
+
+  if (!confirm('Remove this sighting?')) return;
+
+  fetch(`/api/sightings/${sightingId}`, { method: 'DELETE', headers: authHeaders() })
+    .then(r => r.json())
+    .then(result => {
+      if (result.success) {
+        loadSightingsFor(document.getElementById('sighting-reg-select').value);
+      } else {
+        showEditStatus(`Not removed: ${result.error}`, false);
+      }
+    });
+});
+
+document.getElementById('add-sighting-button').addEventListener('click', () => {
+  const regId = document.getElementById('sighting-reg-select').value;
+  const sessionId = document.getElementById('add-sighting-session-select').value;
+
+  if (!regId || !sessionId) return;
+
+  fetch(`/api/registrations/${regId}/sightings`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ session_id: sessionId })
+  })
+    .then(r => r.json())
+    .then(result => {
+      if (result.success) {
+        showEditStatus('Sighting added.', true);
+        loadSightingsFor(regId);
+      } else {
+        showEditStatus(`Not added: ${result.error}`, false);
+      }
     });
 });

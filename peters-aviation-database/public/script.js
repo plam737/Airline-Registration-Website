@@ -9,7 +9,7 @@ fetch('/api/stats')
     document.getElementById('stat-airports').textContent = data.total_airports;
   });
 
-const chartColors = ['#B5651D', '#7B3F00', '#C9A66B', '#9C6B30', '#5E3A1C'];
+const chartColors = ['#3E8EDE', '#1B4965', '#8DAFC4', '#5A8CB5', '#0D1B2A'];
 
 Chart.defaults.font.family = 'Inter';
 Chart.defaults.color = '#2E1F12';
@@ -22,7 +22,7 @@ fetch('/api/top-airlines')
       data: {
         labels: data.map(row => row.name),
         datasets: [{
-          label: 'Registrations Caught',
+          label: 'Sightings',
           data: data.map(row => row.count),
           backgroundColor: chartColors,
           borderRadius: 2
@@ -36,8 +36,8 @@ fetch('/api/top-airlines')
           legend: { display: false }
         },
         scales: {
-          x: { grid: { color: '#E0D2AE' } },
-          y: { grid: { color: '#E0D2AE' } }
+            x: { grid: { color: '#D7E7F2' } },
+            y: { grid: { color: '#D7E7F2' } }
         }
       }
     });
@@ -51,7 +51,7 @@ fetch('/api/top-countries')
       data: {
         labels: data.map(row => row.name),
         datasets: [{
-          label: 'Registrations Caught',
+          label: 'Sightings',
           data: data.map(row => row.count),
           backgroundColor: chartColors,
           borderRadius: 2
@@ -65,8 +65,8 @@ fetch('/api/top-countries')
           legend: { display: false }
         },
         scales: {
-          x: { grid: { color: '#E0D2AE' } },
-          y: { grid: { color: '#E0D2AE' } }
+            x: { grid: { color: '#D7E7F2' } },
+            y: { grid: { color: '#D7E7F2' } }
         }
       }
     });
