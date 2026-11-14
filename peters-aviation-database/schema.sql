@@ -92,6 +92,7 @@ CREATE TABLE IF NOT EXISTS sightings
     registration_id INTEGER NOT NULL,
     session_id INTEGER NOT NULL,
     FOREIGN KEY (registration_id) REFERENCES registrations(id),
-    FOREIGN KEY (session_id) REFERENCES sessions(id)
+    FOREIGN KEY (session_id) REFERENCES sessions(id),
+    UNIQUE (registration_id, session_id)
 );
 
